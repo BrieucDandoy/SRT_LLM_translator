@@ -1,0 +1,6 @@
+[package]
+name = "SRT_LLM_translator"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]

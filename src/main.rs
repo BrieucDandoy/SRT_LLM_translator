@@ -1,40 +1,55 @@
 mod srt_parser;
 mod translator;
-use dotenv::dotenv;
+mod exec;
 use tokio;
+use clap::{Parser, Subcommand};
+use dotenv::dotenv;
 
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
+async fn main() {
     dotenv().ok();
+    let cli = Cli::parse();
 
-    let srt_path: String = "example.srt".to_string();
-    let mut parser = srt_parser::SRTProcessor::new();
-
-    if let Err(e) = parser.parse(srt_path.clone()) {
-        eprintln!("An error occurred during parsing: {}", e);
-        return Err(e.into());
+    if cli.verbose {
+        println!("Running in verbose mode");
     }
 
-    println!("Parse is successful");
-    let str_text: String = parser.text_to_string();
-
-    let translator = translator::Translator {
-        language: "French".to_string(),
-        text: str_text.clone(), // Pass the text to translate
-        model: "gpt-3.5-turbo".to_string(),
-        temperature: 0.68,
-        max_token: 1000,
-    };
-
-    let new_sub = translator::translate_processor(translator,parser).await;
-    match new_sub {
-        Ok(proc) => {
-            let _ = proc.write(format!("translated_{}",srt_path));
+    match cli.command {
+        Some(Commands::Translate { path }) => {
+            let res = exec::translate(path).await;
+            match res {
+                Ok(()) => {println!("Translation sucessfull !");}
+                Err(_e) => {println!("An error has occured during translation");}
+            }
         }
-        Err(e) => {
-            return Err(e.into())
+        None => {
+            println!("No command provided. Use --help to see available options.");
         }
     }
 
-    Ok(())
+
+}
+
+
+
+//clap 
+
+
+
+#[derive(Parser)]
+#[command(name = "SRT translator")]
+#[command(about = "A simple CLI to translate sr tfiles using LLM", long_about = None)]
+struct Cli {
+    /// The verbose flag
+    #[arg(short, long)]
+    verbose: bool,
+
+    #[command(subcommand)]
+    command: Option<Commands>,
+}
+
+#[derive(Subcommand)]
+enum Commands {
+    /// Greet a person by name
+    Translate { path: String },
 }

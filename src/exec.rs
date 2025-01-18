@@ -1,7 +1,5 @@
 use crate::srt_parser;
 use crate::translator;
-use tokio;
-use std::error::Error;
 
 
 pub async fn translate(srt_path : String)->  Result<(), Box<dyn std::error::Error>> {

@@ -1,10 +1,7 @@
-use std::clone;
 use std::error::Error;
 use std::fs::File;
 use std::io::{self, BufRead, BufReader, Error as IOError, Write};
-use std::process::Output;
 
-use serde_json::to_vec;
 
 #[derive(Clone)]
 pub struct Subtitle {
